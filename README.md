@@ -2,6 +2,8 @@
 
 Tree structures for ActiveRecord using CTE (Common Table Expressions). This allows to traverse the whole tree with just one query.
 
+There are many solutions to the problem of traversing trees in Rails. Most of them need a parent node in the database to create child nodes, and use auxiliary columns and/or tables to store the tree structure and traverse it efficiently. If you need the parent node to exist before creating child nodes, WithRecursiveTree might not be the best solution out there. You might want to look at [ancestry](https://github.com/stefankroes/ancestry) or [closure_tree](https://github.com/ClosureTree/closure_tree). However, there are certain circumstances where you need to create the nodes without knowing their parent node in advance. WithRecursiveTree uses only the `parent_id` reference in each node to build the entire tree in 1 query using CTEs.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -61,9 +63,17 @@ WithRecursiveTree will define a `parent` association and a `children` associatio
 | `#self_and_siblings` | Returns the current node and all its siblings. |
 | `#siblings` | Returns the current node's siblings. |
 
+## Benchmarks
+
+You can run some [benchmarks](/benchmarks/benchmark.rb) to compare WithRecursiveTree agains acts_as_tree, ancestry and closure_tree.
+
+Spoiler: benchmarks are always basic cases so you mustn't trust them as if they were the word of god, but people like reading them.
+
+In any case, you must weight the trade-offs between what you need to accomplish and performance.
+
 ## Contributing
 
-For the repo, add your feature, create a PR.
+Fork the repo, add your feature, create a PR.
 
 ## License
 

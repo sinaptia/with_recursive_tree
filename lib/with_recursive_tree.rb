@@ -63,7 +63,7 @@ module WithRecursiveTree
   end
 
   def self_and_siblings
-    parent.present? ? parent.children : self.class.roots
+    root? ? self.class.roots : parent.children
   end
 
   def siblings

@@ -6,3 +6,9 @@ gemspec
 gem "debug", ">= 1.0.0"
 gem "standard"
 gem "sqlite3"
+
+# benchmarks
+gem "acts_as_tree"
+gem "ancestry"
+gem "benchmark"
+gem "closure_tree"
