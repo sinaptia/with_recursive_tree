@@ -73,6 +73,8 @@ GEM
     minitest (5.25.1)
     nokogiri (1.16.7-aarch64-linux)
       racc (~> 1.4)
+    nokogiri (1.16.7-x86_64-linux)
+      racc (~> 1.4)
     parallel (1.26.3)
     parser (3.3.6.0)
       ast (~> 2.4.1)
@@ -126,7 +128,8 @@ GEM
       rubocop-ast (>= 1.31.1, < 2.0)
     ruby-progressbar (1.13.0)
     securerandom (0.3.2)
-    sqlite3 (2.3.0-aarch64-linux-gnu)
+    sqlite3 (2.3.1-aarch64-linux-gnu)
+    sqlite3 (2.3.1-x86_64-linux-gnu)
     standard (1.42.1)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -151,6 +154,7 @@ GEM
 
 PLATFORMS
   aarch64-linux-gnu
+  x86_64-linux
 
 DEPENDENCIES
   debug (>= 1.0.0)
