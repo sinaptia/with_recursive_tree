@@ -10,14 +10,14 @@ class AncestorsTest < ActiveSupport::TestCase
   end
 
   test "other nodes have at least one ancestor" do
-    assert_not_empty @level1_1_a_2.ancestors
+    assert_not_empty @a_node.ancestors
   end
 
   test "performs only one query" do
-    assert_queries_count(1) { @level1_1_a_2.ancestors.count }
+    assert_queries_count(1) { @a_node.ancestors.count }
   end
 
   test "it doesn't contain the node" do
-    assert_not_includes @level1_1_a_2.ancestors, @level1_1_a_2
+    assert_not_includes @a_node.ancestors, @a_node
   end
 end

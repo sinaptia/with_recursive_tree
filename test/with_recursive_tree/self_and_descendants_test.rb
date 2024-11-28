@@ -10,6 +10,6 @@ class SelfAndDescedantsTest < ActiveSupport::TestCase
   end
 
   test "the collection returns self and the descendants" do
-    assert_equal @level1_1.self_and_descendants.order(:id), [@level1_1, @level1_1_a, @level1_1_b, @level1_1_c, @level1_1_a_1, @level1_1_a_2, @level1_1_b_1].sort_by(&:id)
+    assert_equal @d_node.self_and_descendants, [@d_node, @c_node, @e_node]
   end
 end

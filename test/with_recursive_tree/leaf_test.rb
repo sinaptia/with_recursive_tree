@@ -10,6 +10,6 @@ class LeafTest < ActiveSupport::TestCase
   end
 
   test "a node with no childlren is a leaf" do
-    assert @level1_3.leaf?
+    assert @a_node.leaf?
   end
 end

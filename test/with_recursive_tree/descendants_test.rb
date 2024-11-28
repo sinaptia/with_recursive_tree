@@ -6,7 +6,7 @@ class DescendantsTest < ActiveSupport::TestCase
   end
 
   test "leaves have no descendants" do
-    assert_empty @level1_3.descendants
+    assert_empty @a_node.descendants
   end
 
   test "performs only one query" do

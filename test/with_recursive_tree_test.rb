@@ -6,10 +6,10 @@ class WithRecursiveTreeTest < ActiveSupport::TestCase
   end
 
   test "it creates the parent association" do
-    assert_respond_to Category.new, :parent
+    assert_respond_to Node.new, :parent
   end
 
   test "it creates the children association" do
-    assert_respond_to Category.new, :children
+    assert_respond_to Node.new, :children
   end
 end
