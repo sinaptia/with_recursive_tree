@@ -31,7 +31,7 @@ By doing this, with_recursive_tree will add 2 associations:
 * `parent`: the parent of the node
 * `children`: the children of this node
 
-To build these associations, with_recursive_tree will use the `id` and the `parent_id` columns as the primary and foreing keys, respectively. If you want to specify different primary and foreign keys, you can do that by passing the `primary_key` and `foreign_key` options. For example:
+To build these associations, with_recursive_tree will use the `id` and the `parent_id` columns as the primary and foreing keys, respectively. If you want to specify different primary and foreign keys, you can do that by passing the `primary_key` and `foreign_key` options. For example, for a categories table whose primary key is `category_id` and the parent record id is `parent_category_id`, you would set it up as follows:
 
 ```ruby
 class Category < ApplicationRecord
@@ -39,7 +39,7 @@ class Category < ApplicationRecord
 end
 ```
 
-Lastly, you can specify how to sort each node's `children` by passing the `order` option to `with_recursive_tree`. If no `order` option is set, it will default to `id`. This option is useful especially if you need to traverse the tree. For example:
+Lastly, you can specify how to sort each node's `children` by passing the `order` option to `with_recursive_tree`. If no `order` option is set, it will default to `id`. This option is useful especially when you need to traverse the tree in a specific order. For example:
 
 ```ruby
 class Category < ApplicationRecord
@@ -148,7 +148,7 @@ A
 
 You can run some [benchmarks](/benchmarks/benchmark.rb) to compare with_recursive_tree agains [acts_as_tree](https://github.com/amerine/acts_as_tree), [ancestry](https://github.com/stefankroes/ancestry/) and [closure_tree](https://github.com/ClosureTree/closure_tree).
 
-Spoiler: benchmarks are always basic cases so you mustn't trust them as if they were the word of god, but people like reading them.
+Spoiler: benchmarks are always basic cases so you mustn't trust them as if they were the word of god, but they are useful tools for development/testing and setting a baseline performance requirement..
 
 In any case, you must weight the trade-offs between what you need to accomplish and performance.
 

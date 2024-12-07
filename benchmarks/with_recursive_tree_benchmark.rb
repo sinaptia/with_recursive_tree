@@ -34,4 +34,12 @@ Benchmark.bmbm do |x|
   x.report("walk tree, bfs") do
     Node.roots.first.self_and_descendants.bfs.each { |node| silence { puts "#{node.id} (#{node.depth})" } }
   end
+  x.report("reparenting") do
+    root = Node.roots.first
+    first_child = root.children.first
+    first_grandchild = first_child.children.first
+
+    # move the first grandchild to be a child of the root node
+    first_grandchild.update parent: root
+  end
 end
