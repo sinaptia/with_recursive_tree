@@ -1,8 +1,6 @@
-# WithRecursiveTree
+# with_recursive_tree
 
-Tree structures for ActiveRecord using CTE (Common Table Expressions). This allows to traverse the whole tree with just one query.
-
-There are many solutions to the problem of traversing trees in Rails. Most of them need a parent node in the database to create child nodes, and use auxiliary columns and/or tables to store the tree structure and traverse it efficiently. If you need the parent node to exist before creating child nodes, WithRecursiveTree might not be the best solution out there. You might want to look at [ancestry](https://github.com/stefankroes/ancestry) or [closure_tree](https://github.com/ClosureTree/closure_tree). However, there are certain circumstances where you need to create the nodes without knowing their parent node in advance. WithRecursiveTree uses only the `parent_id` reference in each node to build the entire tree in 1 query using CTEs.
+Tree structures for ActiveRecord using CTE (Common Table Expressions). Traverse the whole tree with just one query.
 
 ## Installation
 
@@ -20,7 +18,7 @@ $ bundle
 
 ## Usage
 
-Add `with_recursive_tree` to your model:
+First, your model needs a reference to the its parent. Tipically, this is a `parent_id` column in your table. Once you have that reference, you can add `with_recursive_tree` to your model:
 
 ```ruby
 class Category < ApplicationRecord
@@ -28,15 +26,12 @@ class Category < ApplicationRecord
 end
 ```
 
-WithRecursiveTree assumes you have a `parent_id` column in your table. If you use another name for this column, pass it to `with_recursive_tree`:
+By doing this, with_recursive_tree will add 2 associations:
 
-```ruby
-class Category < ApplicationRecord
-  with_recursive_tree foreign_key: :parent_category_id
-end
-```
+* `parent`: the parent of the node
+* `children`: the children of this node
 
-You can also specify the name of the column used as the primary key:
+To build these associations, with_recursive_tree will use the `id` and the `parent_id` columns as the primary and foreing keys, respectively. If you want to specify different primary and foreign keys, you can do that by passing the `primary_key` and `foreign_key` options. For example, for a categories table whose primary key is `category_id` and the parent record id is `parent_category_id`, you would set it up as follows:
 
 ```ruby
 class Category < ApplicationRecord
@@ -44,9 +39,19 @@ class Category < ApplicationRecord
 end
 ```
 
+Lastly, you can specify how to sort each node's `children` by passing the `order` option to `with_recursive_tree`. If no `order` option is set, it will default to `id`. This option is useful especially when you need to traverse the tree in a specific order. For example:
+
+```ruby
+class Category < ApplicationRecord
+  with_recursive_tree order: :name
+end
+```
+
 ### Class methods
 
-WithRecursiveTree will define a `parent` association and a `children` association. It also adds the `#roots` method, which will return all nodes without parent.
+| Method | Description |
+|--------|-------------|
+| `::roots` | Returns all roots (nodes without parent). |
 
 ### Instance methods
 
@@ -55,7 +60,7 @@ WithRecursiveTree will define a `parent` association and a `children` associatio
 | `#ancestors` | Returns all ancestors of the node. |
 | `#descendants` | Returns all descendants of the node (subtree). |
 | `#leaf?` | Returns whether the node is a leaf (has no children). |
-| `#level` | Returns the level of the current node |
+| `#depth` | Returns the depth of the current node. |
 | `#root` | Returns the root node of the current node's tree. |
 | `#root?` | Returns whether the node is a root (has no parent). |
 | `#self_and_ancestors` | Returns the node and all its ancestors. |
@@ -63,11 +68,87 @@ WithRecursiveTree will define a `parent` association and a `children` associatio
 | `#self_and_siblings` | Returns the current node and all its siblings. |
 | `#siblings` | Returns the current node's siblings. |
 
+### Tree traversing
+
+You can traverse the tree using `#descendants` or `#self_and_descendants` in combination with the `#bfs` (breadth-first search) and `#dfs` (depth-first search, pre-order) scopes.
+
+For example, given the following tree:
+
+![sample tree](/assets/tree.png)
+
+and the following class:
+
+```ruby
+class Node < ApplicationRecord
+  with_recursive_tree order: :name
+end
+```
+
+You can do:
+
+```ruby
+root = Node.roots.first
+
+puts root.self_and_descendants.bfs.map { |node| "#{"-" * node.depth}#{node.name}" }
+```
+
+and you will get:
+
+```
+A
+-B
+-L
+--C
+--H
+--M
+--N
+---D
+---I
+---O
+---P
+---Q
+---R
+----E
+----F
+----G
+----J
+-----K
+```
+
+Similarly, you can do the same with `#dfs`:
+
+```ruby
+puts root.self_and_descendants.dfs.map { |node| "#{"-" * node.depth}#{node.name}" }
+```
+
+and you will get:
+
+```
+A
+-B
+--C
+---D
+----E
+----F
+----G
+--H
+---I
+----J
+-----K
+-L
+--M
+--N
+---O
+---P
+---Q
+---R
+```
+
 ## Benchmarks
 
-You can run some [benchmarks](/benchmarks/benchmark.rb) to compare WithRecursiveTree agains acts_as_tree, ancestry and closure_tree.
+You can run some [benchmarks](/benchmarks/benchmark.rb) to compare with_recursive_tree agains [acts_as_tree](https://github.com/amerine/acts_as_tree), [ancestry](https://github.com/stefankroes/ancestry/) and [closure_tree](https://github.com/ClosureTree/closure_tree).
 
-Spoiler: benchmarks are always basic cases so you mustn't trust them as if they were the word of god, but people like reading them.
+Spoiler: benchmarks are always basic cases so you mustn't trust them as if they were the word of god, but they are useful tools for development/testing and setting a baseline performance requirement..
 
 In any case, you must weight the trade-offs between what you need to accomplish and performance.
 

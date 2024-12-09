@@ -10,68 +10,62 @@ class ActiveSupport::TestCase
   include ActiveRecord::Assertions::QueryAssertions
 
   setup do
-    @root = Category.create
-    @second_root = Category.create
+    @root = Node.create name: "F"
 
-    @level1_1 = Category.create parent: @root
-    @level1_2 = Category.create parent: @root
-    @level1_3 = Category.create parent: @root
+    @b_node = Node.create parent: @root, name: "B"
+    @g_node = Node.create parent: @root, name: "G"
 
-    @level1_1_a = Category.create parent: @level1_1
-    @level1_1_b = Category.create parent: @level1_1
-    @level1_1_c = Category.create parent: @level1_1
+    @a_node = Node.create parent: @b_node, name: "A"
+    @d_node = Node.create parent: @b_node, name: "D"
 
-    @level1_2_a = Category.create parent: @level1_2
-    @level1_2_b = Category.create parent: @level1_2
+    @c_node = Node.create parent: @d_node, name: "C"
+    @e_node = Node.create parent: @d_node, name: "E"
 
-    @level1_1_a_1 = Category.create parent: @level1_1_a
-    @level1_1_a_2 = Category.create parent: @level1_1_a
+    @i_node = Node.create parent: @g_node, name: "I"
 
-    @level1_1_b_1 = Category.create parent: @level1_1_b
+    @h_node = Node.create parent: @i_node, name: "H"
 
-    @thing_root = Thing.create thing_id: "thing root"
+    @troot = TextNode.create name: "F"
 
-    @thing_level1_1 = Thing.create parent: @thing_root, thing_id: "thing level 1.1"
-    @thing_level1_2 = Thing.create parent: @thing_root, thing_id: "thing level 1.2"
+    @b_tnode = TextNode.create parent: @troot, name: "B"
+    @g_tnode = TextNode.create parent: @troot, name: "G"
 
-    @thing_level1_1_a = Thing.create parent: @thing_level1_1, thing_id: "thing level 1.1.a"
-    @thing_level1_1_b = Thing.create parent: @thing_level1_1, thing_id: "thing level 1.1.b"
+    @a_tnode = TextNode.create parent: @b_tnode, name: "A"
+    @d_tnode = TextNode.create parent: @b_tnode, name: "D"
 
-    @thing_level1_2_a = Thing.create parent: @thing_level1_2, thing_id: "thing level 1.2.a"
-    @thing_level1_2_b = Thing.create parent: @thing_level1_2, thing_id: "thing level 1.2.b"
+    @c_tnode = TextNode.create parent: @d_tnode, name: "C"
+    @e_tnode = TextNode.create parent: @d_tnode, name: "E"
 
-    @thing_level1_1_a_1 = Thing.create parent: @thing_level1_1_a, thing_id: "thing level 1.1.a.1"
+    @i_tnode = TextNode.create parent: @g_tnode, name: "I"
+
+    @h_tnode = TextNode.create parent: @i_tnode, name: "H"
   end
 
   teardown do
-    [Category, Thing].each(&:delete_all)
+    [Node, TextNode].each(&:delete_all)
   end
 end
 
+# ActiveRecord::Base.establish_connection adapter: "sqlite3", database: "test.sqlite3"
 ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:"
+ActiveRecord::Migration.verbose = false
 
-begin
-  stdout = $stdout
-  $stdout = StringIO.new
-
-  ActiveRecord::Schema.define do
-    create_table :categories do |t|
-      t.column :parent_id, :integer
-    end
-
-    create_table :things do |t|
-      t.column :parent_thing_id, :string
-      t.column :thing_id, :string
-    end
+ActiveRecord::Schema.define do
+  create_table :nodes do |t|
+    t.column :name, :string
+    t.column :parent_id, :integer
   end
-ensure
-  $stdout = stdout
+
+  create_table :text_nodes do |t|
+    t.column :name, :string
+    t.column :parent_node_id, :string
+  end
 end
 
-class Category < ActiveRecord::Base
-  with_recursive_tree
+class Node < ActiveRecord::Base
+  with_recursive_tree # order: :name
 end
 
-class Thing < ActiveRecord::Base
-  with_recursive_tree primary_key: :thing_id, foreign_key: :parent_thing_id
+class TextNode < ActiveRecord::Base
+  with_recursive_tree primary_key: :name, foreign_key: :parent_node_id
 end
