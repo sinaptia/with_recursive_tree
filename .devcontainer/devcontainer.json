@@ -10,4 +10,8 @@
     "ghcr.io/rails/devcontainer/features/bundler-cache": {},
     "ghcr.io/rails/devcontainer/features/sqlite3": {}
   },
+  "mounts": [
+    "type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh",
+    "type=bind,source=${localEnv:HOME}/.gem,target=/home/vscode/.gem"
+  ]
 }
