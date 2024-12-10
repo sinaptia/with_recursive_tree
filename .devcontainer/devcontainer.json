@@ -8,6 +8,8 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/rails/devcontainer/features/bundler-cache": {},
+    "ghcr.io/rails/devcontainer/features/postgres-client": {},
+    "ghcr.io/rails/devcontainer/features/mysql-client": {},
     "ghcr.io/rails/devcontainer/features/sqlite3": {}
   },
   "mounts": [
