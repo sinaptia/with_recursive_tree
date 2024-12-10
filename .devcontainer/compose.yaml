@@ -1,6 +1,13 @@
 name: "with_recursive_tree"
 
 services:
+  mysql:
+    image: mysql/mysql-server:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+      MYSQL_ROOT_HOST: "%"
+
   rails-app:
     build:
       context: ..
@@ -8,3 +15,9 @@ services:
     volumes:
       - ../..:/workspaces:cached
     command: sleep infinity
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: postgres
+    image: postgres:13
+    restart: unless-stopped

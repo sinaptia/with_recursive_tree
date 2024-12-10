@@ -4,6 +4,8 @@ source "https://rubygems.org"
 gemspec
 
 gem "debug", ">= 1.0.0"
+gem "mysql2"
+gem "pg"
 gem "standard"
 gem "sqlite3"
 

@@ -1,0 +1,16 @@
+mysql2:
+  adapter: mysql2
+  host: <%= ENV.fetch "DB_HOST", "mysql" %>
+  username: root
+  database: with_recursive_tree_test
+
+postgresql:
+  adapter: postgresql
+  host: <%= ENV.fetch "DB_HOST", "postgres" %>
+  user: postgres
+  password: postgres
+  database: with_recursive_tree_test
+
+sqlite3:
+  adapter: sqlite3
+  database: ":memory:"
