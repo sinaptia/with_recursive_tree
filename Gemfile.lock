@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    with_recursive_tree (0.1.0)
+    with_recursive_tree (0.1.1)
       activerecord (>= 7.2)
       activesupport (>= 7.2)
       railties (>= 7.2)
