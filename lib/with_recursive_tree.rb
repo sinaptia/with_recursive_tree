@@ -122,6 +122,10 @@ module WithRecursiveTree
   end
 end
 
+if Gem::Dependency.new("", "< 7.2.0").match?("", ActiveRecord::VERSION::STRING)
+  require "with_recursive_tree/backport"
+end
+
 ActiveSupport.on_load :active_record do
   include WithRecursiveTree
 end

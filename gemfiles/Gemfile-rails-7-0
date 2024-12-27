@@ -1,0 +1,19 @@
+source "https://rubygems.org"
+
+gemspec path: ".."
+
+gem "debug", ">= 1.0.0"
+gem "mysql2"
+gem "pg"
+gem "standard"
+gem "sqlite3", "~> 1.4"
+
+# benchmarks
+gem "acts_as_tree"
+gem "ancestry"
+gem "benchmark"
+gem "closure_tree"
+
+gem "activerecord", "~> 7.0.0"
+gem "activesupport", "~> 7.0.0"
+gem "railties", "~> 7.0.0"

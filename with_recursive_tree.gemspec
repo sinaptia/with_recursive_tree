@@ -16,7 +16,9 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "activerecord", ">= 7.2"
-  spec.add_dependency "activesupport", ">= 7.2"
-  spec.add_dependency "railties", ">= 7.2"
+  spec.required_ruby_version = ">= 3.1.0"
+
+  spec.add_dependency "activerecord", ">= 6.0"
+  spec.add_dependency "activesupport", ">= 6.0"
+  spec.add_dependency "railties", ">= 6.0"
 end

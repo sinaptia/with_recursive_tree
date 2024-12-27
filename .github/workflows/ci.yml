@@ -16,7 +16,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.6
+          ruby-version: 3.4
           bundler-cache: true
 
       - name: Run standardrb
@@ -25,6 +25,35 @@ jobs:
   mysql:
     name: Test (MySQL)
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        gemfile:
+          - Gemfile
+          - gemfiles/Gemfile-rails-7-2
+          - gemfiles/Gemfile-rails-7-1
+          - gemfiles/Gemfile-rails-7-0
+          - gemfiles/Gemfile-rails-6-1
+          - gemfiles/Gemfile-rails-6-0
+        ruby:
+          - 3.4
+          - 3.3
+          - 3.2
+          - 3.1
+        exclude:
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: gemfiles/Gemfile-rails-7-0
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-1
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-0
+            ruby: 3.4
+
+    env:
+      BUNDLE_GEMFILE: ${{matrix.gemfile}}
 
     services:
       mysql:
@@ -47,7 +76,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.6
+          ruby-version: ${{matrix.ruby}}
           bundler-cache: true
 
       - name: Run tests
@@ -60,6 +89,35 @@ jobs:
   postgres:
     name: Test (Postgres)
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        gemfile:
+          - Gemfile
+          - gemfiles/Gemfile-rails-7-2
+          - gemfiles/Gemfile-rails-7-1
+          - gemfiles/Gemfile-rails-7-0
+          - gemfiles/Gemfile-rails-6-1
+          - gemfiles/Gemfile-rails-6-0
+        ruby:
+          - 3.4
+          - 3.3
+          - 3.2
+          - 3.1
+        exclude:
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: gemfiles/Gemfile-rails-7-0
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-1
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-0
+            ruby: 3.4
+
+    env:
+      BUNDLE_GEMFILE: ${{matrix.gemfile}}
 
     services:
       postgres:
@@ -81,7 +139,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.6
+          ruby-version: ${{matrix.ruby}}
           bundler-cache: true
 
       - name: Run tests
@@ -95,6 +153,35 @@ jobs:
     name: Test (SQLite3)
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        gemfile:
+          - Gemfile
+          - gemfiles/Gemfile-rails-7-2
+          - gemfiles/Gemfile-rails-7-1
+          - gemfiles/Gemfile-rails-7-0
+          - gemfiles/Gemfile-rails-6-1
+          - gemfiles/Gemfile-rails-6-0
+        ruby:
+          - 3.4
+          - 3.3
+          - 3.2
+          - 3.1
+        exclude:
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: Gemfile
+            ruby: 3.1
+          - gemfile: gemfiles/Gemfile-rails-7-0
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-1
+            ruby: 3.4
+          - gemfile: gemfiles/Gemfile-rails-6-0
+            ruby: 3.4
+
+    env:
+      BUNDLE_GEMFILE: ${{matrix.gemfile}}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -102,7 +189,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.6
+          ruby-version: ${{matrix.ruby}}
           bundler-cache: true
 
       - name: Run tests

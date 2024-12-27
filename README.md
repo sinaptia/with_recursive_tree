@@ -144,6 +144,16 @@ A
 ---R
 ```
 
+## Compatibility
+
+with_recursive_tree is compatible with:
+
+* Rails 6.0 and above
+* Ruby 3.1 and above
+* Postgres version 13 and above
+* MySQL version 8 and above
+* SQLite3 version 3.34 and above
+
 ## Benchmarks
 
 You can run some [benchmarks](/benchmarks/benchmark.rb) to compare with_recursive_tree agains [acts_as_tree](https://github.com/amerine/acts_as_tree), [ancestry](https://github.com/stefankroes/ancestry/) and [closure_tree](https://github.com/ClosureTree/closure_tree).

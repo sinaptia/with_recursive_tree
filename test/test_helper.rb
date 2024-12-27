@@ -3,7 +3,11 @@ require "bundler/setup"
 ENV["RAILS_ENV"] = "test"
 
 require "active_record"
-require "active_record/testing/query_assertions"
+if Gem::Dependency.new("", ">= 7.2.0").match?("", ActiveRecord::VERSION::STRING)
+  require "active_record/testing/query_assertions"
+else
+  require "backported_query_assertions"
+end
 require "active_support"
 require "debug"
 require "erb"
