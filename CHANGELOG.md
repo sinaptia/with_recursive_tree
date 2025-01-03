@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for Rails 6.0 and above
 - CI matrix with Ruby 3.1 to 3.4 and Rails 6.0 to 8.0
+- Support for Ruby 3.0
 
 ## [0.1.1] - 2024-12-10
 
