@@ -1,4 +1,4 @@
-module WithRecursiveTree
+module WithRecursiveTree::InstanceMethods
   def ancestors
     self_and_ancestors.where.not self.class.with_recursive_tree_primary_key => send(self.class.with_recursive_tree_primary_key)
   end
