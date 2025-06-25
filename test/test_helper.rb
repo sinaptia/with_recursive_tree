@@ -81,6 +81,10 @@ ActiveRecord::Schema.define do
 
     t.timestamps
   end
+
+  create_table :people do |t|
+    t.column :name, :string
+  end
 end
 
 class Node < ActiveRecord::Base
@@ -89,4 +93,7 @@ end
 
 class TextNode < ActiveRecord::Base
   with_recursive_tree primary_key: :name, foreign_key: :parent_node_id
+end
+
+class Person < ActiveRecord::Base
 end
