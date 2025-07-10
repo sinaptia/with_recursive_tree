@@ -5,13 +5,11 @@ require "active_support"
 require "benchmark"
 require "debug"
 
-def create_tree(parent = nil, level = 0, max_levels = 3, siblings = 2)
-  return if level > max_levels
+def create_tree(parent = nil, level = 0, max_levels = 3, children = 2)
+  return if level >= max_levels - 1
 
-  siblings.times do
-    node = Node.create parent: parent
-
-    create_tree node, level + 1, max_levels
+  children.times do
+    create_tree Node.create(parent: parent), level + 1, max_levels, children
   end
 end
 
