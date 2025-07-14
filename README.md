@@ -1,6 +1,6 @@
 # with_recursive_tree
 
-Tree structures for ActiveRecord using CTE (Common Table Expressions). Traverse the whole tree with just one query.
+Tree structures for ActiveRecord using CTEs (Common Table Expressions). Traverse an entire tree with just one query.
 
 ## Installation
 
@@ -18,7 +18,7 @@ $ bundle
 
 ## Usage
 
-First, your model needs a reference to the its parent. Typically, this is a `parent_id` column in your table. Once you have that reference, you can add `with_recursive_tree` to your model:
+First, your model needs a reference to its parent. Typically, this is a `parent_id` column in your table. Once you have that reference, you can add `with_recursive_tree` to your model:
 
 ```ruby
 class Category < ApplicationRecord
@@ -28,10 +28,10 @@ end
 
 By doing this, with_recursive_tree will add 2 associations:
 
-* `parent`: the parent of the node
-* `children`: the children of this node
+* `parent`: the node's parent
+* `children`: the node's children
 
-To build these associations, with_recursive_tree will use the `id` and the `parent_id` columns as the primary and foreign keys, respectively. If you want to specify different primary and foreign keys, you can do that by passing the `primary_key` and `foreign_key` options. For example, for a categories table whose primary key is `category_id` and the parent record id is `parent_category_id`, you would set it up as follows:
+To build these associations, with_recursive_tree will use the `id` and the `parent_id` columns as the primary and foreign keys, respectively. If you want to specify different primary and foreign keys, you can specify them by passing the `primary_key` and `foreign_key` options. For example, for a categories table whose primary key is `category_id` and the parent record id is `parent_category_id`, you would set it up as follows:
 
 ```ruby
 class Category < ApplicationRecord
@@ -74,7 +74,27 @@ You can traverse the tree using `#descendants` or `#self_and_descendants` in com
 
 For example, given the following tree:
 
-![sample tree](/assets/tree.png)
+```mermaid
+flowchart TD
+  A
+  A --> B
+  A --> L
+  B --> C
+  B --> H
+  C --> D
+  D --> E
+  D --> F
+  D --> G
+  H --> I
+  I --> J
+  J --> K
+  L --> M
+  L --> N
+  N --> O
+  N --> P
+  N --> Q
+  N --> R
+```
 
 and the following class:
 
