@@ -2,17 +2,17 @@ require "with_recursive_tree/version"
 
 module WithRecursiveTree
   module ClassMethods
-    def with_recursive_tree(primary_key: :id, foreign_key: :parent_id, foreign_type_key: nil, order: nil)
+    def with_recursive_tree(primary_key: :id, foreign_key: :parent_id, foreign_key_type: nil, order: nil)
       include InstanceMethods
 
-      if foreign_type_key
-        belongs_to :parent, -> { where(foreign_type_key => self.class.name) }, class_name: name,
+      if foreign_key_type
+        belongs_to :parent, -> { where(foreign_key_type => self.class.name) }, class_name: name,
                    primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
 
-        has_many :children, -> { where(foreign_type_key => self.class.name).order(order) },
+        has_many :children, -> { where(foreign_key_type => self.class.name).order(order) },
                  class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
 
-        define_singleton_method(:with_recursive_tree_foreign_type_key) { foreign_type_key }
+        define_singleton_method(:with_recursive_tree_foreign_key_type) { foreign_key_type }
       else
         belongs_to :parent, class_name: name,
                    primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
@@ -83,10 +83,10 @@ module WithRecursiveTree
       foreign_key = self.class.with_recursive_tree_foreign_key
       primary_key = self.class.with_recursive_tree_primary_key
 
-      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_type_key)
+      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
         <<~SQL
           JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key} 
-            AND #{table_name}.#{self.class.with_recursive_tree_foreign_type_key} = `#{self.class.name}`
+            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = `#{self.class.name}`
         SQL
       else
         <<~SQL
@@ -123,10 +123,10 @@ module WithRecursiveTree
         "tree.path || #{table_name}.#{primary_key} || '/'"
       end
 
-      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_type_key)
+      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
         <<~SQL
           JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key} 
-            AND #{table_name}.#{self.class.with_recursive_tree_foreign_type_key} = '#{self.class.name}'
+            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
         SQL
       else
         <<~SQL
