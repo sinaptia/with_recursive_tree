@@ -86,7 +86,7 @@ module WithRecursiveTree
       joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
         <<~SQL
           JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key} 
-            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = `#{self.class.name}`
+            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
         SQL
       else
         <<~SQL
