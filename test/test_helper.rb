@@ -12,6 +12,7 @@ require "active_support"
 require "debug"
 require "erb"
 require "with_recursive_tree"
+require "rails/plugin/test"
 
 class ActiveSupport::TestCase
   include ActiveRecord::Assertions::QueryAssertions
