@@ -86,6 +86,30 @@ ActiveRecord::Schema.define do
   create_table :people do |t|
     t.column :name, :string
   end
+
+  create_table :polymorphic_nodes do |t|
+    t.column :name, :string
+    t.column :parent_id, :integer
+    t.column :parent_type, :string
+
+    t.timestamps
+  end
+
+  create_table :non_polymorphic_nodes do |t|
+    t.column :name, :string
+    t.column :pool_id, :integer
+    t.column :pool_type, :string
+
+    t.timestamps
+  end
+
+  create_table :custom_keys_nodes do |t|
+    t.column :name, :string
+    t.column :pool_id, :integer
+    t.column :pool_type, :string
+
+    t.timestamps
+  end
 end
 
 class Node < ActiveRecord::Base
@@ -94,6 +118,20 @@ end
 
 class TextNode < ActiveRecord::Base
   with_recursive_tree primary_key: :name, foreign_key: :parent_node_id
+end
+
+class PolymorphicNode < ActiveRecord::Base
+  with_recursive_tree foreign_key_type: :parent_type, order: :name
+end
+
+class NonPolymorphicNode < ActiveRecord::Base
+  with_recursive_tree foreign_key: :pool_id, foreign_key_type: :pool_type, order: :name
+end
+
+class CustomKeysNode < ActiveRecord::Base
+  with_recursive_tree foreign_key: :pool_id, foreign_key_type: :pool_type, order: :name
+
+  belongs_to :pool, class_name: "CustomKeysNode", foreign_key: :pool_id, optional: true
 end
 
 class Person < ActiveRecord::Base
