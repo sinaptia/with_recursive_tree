@@ -13,6 +13,18 @@ module WithRecursiveTree
                  class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
 
         define_singleton_method(:with_recursive_tree_foreign_key_type) { foreign_key_type }
+
+        before_save do
+          if send("#{foreign_key}_changed?")
+            if send(foreign_key).present?
+              # Only set foreign_key_type to class name if it's not already set to something else
+              send("#{foreign_key_type}=", self.class.name) if send(foreign_key_type).blank?
+            elsif send(foreign_key).nil?
+              # When clearing parent, set type to nil unless explicitly keeping it as model name
+              send("#{foreign_key_type}=", nil) unless send(foreign_key_type) == self.class.name
+            end
+          end
+        end
       else
         belongs_to :parent, class_name: name,
                    primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
@@ -48,7 +60,22 @@ module WithRecursiveTree
           self
         end
       end
-      scope :roots, -> { where with_recursive_tree_foreign_key => nil }
+      scope :roots, -> {
+        if respond_to?(:with_recursive_tree_foreign_key_type)
+          # Root conditions with foreign_key_type:
+          # 1. nil foreign_key AND nil foreign_key_type
+          # 2. nil foreign_key AND foreign_key_type matches model name
+          # 3. not nil foreign_key AND foreign_key_type different from model name
+          where(with_recursive_tree_foreign_key => nil)
+            .where(with_recursive_tree_foreign_key_type => [nil, name])
+            .or(
+              where.not(with_recursive_tree_foreign_key => nil)
+                .where.not(with_recursive_tree_foreign_key_type => name)
+            )
+        else
+          where with_recursive_tree_foreign_key => nil
+        end
+      }
     end
   end
 
@@ -71,11 +98,45 @@ module WithRecursiveTree
     alias_method :level, :depth
 
     def root
-      self_and_ancestors.find_by self.class.with_recursive_tree_foreign_key => nil
+      return self if root?
+
+      if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+        # For foreign_key_type, find the first ancestor that satisfies root conditions
+        self_and_ancestors.find do |node|
+          foreign_key_value = node.send(self.class.with_recursive_tree_foreign_key)
+          foreign_key_type_value = node.send(self.class.with_recursive_tree_foreign_key_type)
+
+          if foreign_key_value.nil?
+            foreign_key_type_value.nil? || foreign_key_type_value == self.class.name
+          else
+            foreign_key_type_value != self.class.name
+          end
+        end
+      else
+        self_and_ancestors.find_by self.class.with_recursive_tree_foreign_key => nil
+      end
     end
 
     def root?
-      parent.blank?
+      foreign_key = self.class.with_recursive_tree_foreign_key
+      foreign_key_value = send(foreign_key)
+
+      if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+        foreign_key_type = self.class.with_recursive_tree_foreign_key_type
+        foreign_key_type_value = send(foreign_key_type)
+
+        # Root conditions with foreign_key_type:
+        # 1. nil foreign_key AND nil foreign_key_type
+        # 2. nil foreign_key AND foreign_key_type matches model name
+        # 3. not nil foreign_key AND foreign_key_type different from model name
+        if foreign_key_value.nil?
+          foreign_key_type_value.nil? || foreign_key_type_value == self.class.name
+        else
+          foreign_key_type_value != self.class.name
+        end
+      else
+        foreign_key_value.nil?
+      end
     end
 
     def self_and_ancestors
@@ -85,12 +146,12 @@ module WithRecursiveTree
 
       joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
         <<~SQL
-          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key} 
-            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
+          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key}
+            AND tree.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
         SQL
       else
         <<~SQL
-          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key} 
+          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key}
         SQL
       end
 
@@ -125,12 +186,12 @@ module WithRecursiveTree
 
       joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
         <<~SQL
-          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key} 
+          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key}
             AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
         SQL
       else
         <<~SQL
-          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key} 
+          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key}
         SQL
       end
 
