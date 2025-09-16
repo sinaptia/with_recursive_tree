@@ -5,13 +5,13 @@ module WithRecursiveTree
     def with_recursive_tree(primary_key: :id, foreign_key: :parent_id, foreign_key_type: nil, order: nil)
       include InstanceMethods
 
-      if foreign_key_type
-        belongs_to :parent, -> { where(foreign_key_type => self.class.name) }, class_name: name,
-                   primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
+      scope_condition = foreign_key_type.present? ? -> { where foreign_key_type => self.class.name } : -> { self }
 
-        has_many :children, -> { where(foreign_key_type => self.class.name).order(order) },
-                 class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
+      belongs_to :parent, scope_condition, class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
 
+      has_many :children, -> { scope_condition.call.order(order) }, class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
+
+      if foreign_key_type.present?
         define_singleton_method(:with_recursive_tree_foreign_key_type) { foreign_key_type }
 
         before_save do
@@ -25,12 +25,6 @@ module WithRecursiveTree
             end
           end
         end
-      else
-        belongs_to :parent, class_name: name,
-                   primary_key: primary_key, foreign_key: foreign_key, inverse_of: :children, optional: true
-
-        has_many :children, -> { order order },
-                 class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
       end
 
       define_singleton_method(:with_recursive_tree_primary_key) { primary_key }
