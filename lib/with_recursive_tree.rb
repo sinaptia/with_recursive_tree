@@ -11,9 +11,19 @@ module WithRecursiveTree
 
       has_many :children, -> { scope_condition.call.order(order) }, class_name: name, primary_key: primary_key, foreign_key: foreign_key, inverse_of: :parent
 
-      if foreign_key_type.present?
-        define_singleton_method(:with_recursive_tree_foreign_key_type) { foreign_key_type }
+      define_singleton_method(:with_recursive_tree_primary_key) { primary_key }
+      define_singleton_method(:with_recursive_tree_foreign_key) { foreign_key }
+      define_singleton_method(:with_recursive_tree_foreign_key_type) { foreign_key_type }
+      define_singleton_method(:with_recursive_tree_order) { order || primary_key }
+      define_singleton_method(:with_recursive_tree_order_column) do
+        if with_recursive_tree_order.is_a?(Hash)
+          with_recursive_tree_order.keys.first
+        else
+          with_recursive_tree_order.to_s.split(" ").first
+        end
+      end
 
+      if foreign_key_type.present?
         before_save do
           if send("#{foreign_key}_changed?")
             if send(foreign_key).present?
@@ -24,17 +34,6 @@ module WithRecursiveTree
               send("#{foreign_key_type}=", nil) unless send(foreign_key_type) == self.class.name
             end
           end
-        end
-      end
-
-      define_singleton_method(:with_recursive_tree_primary_key) { primary_key }
-      define_singleton_method(:with_recursive_tree_foreign_key) { foreign_key }
-      define_singleton_method(:with_recursive_tree_order) { order || primary_key }
-      define_singleton_method(:with_recursive_tree_order_column) do
-        if with_recursive_tree_order.is_a?(Hash)
-          with_recursive_tree_order.keys.first
-        else
-          with_recursive_tree_order.to_s.split(" ").first
         end
       end
 
@@ -55,7 +54,7 @@ module WithRecursiveTree
         end
       end
       scope :roots, -> {
-        if respond_to?(:with_recursive_tree_foreign_key_type)
+        if with_recursive_tree_foreign_key_type.present?
           # Root conditions with foreign_key_type:
           # 1. nil foreign_key AND nil foreign_key_type
           # 2. nil foreign_key AND foreign_key_type matches model name
@@ -94,7 +93,7 @@ module WithRecursiveTree
     def root
       return self if root?
 
-      if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+      if self.class.with_recursive_tree_foreign_key_type.present?
         # For foreign_key_type, find the first ancestor that satisfies root conditions
         self_and_ancestors.find do |node|
           foreign_key_value = node.send(self.class.with_recursive_tree_foreign_key)
@@ -115,7 +114,7 @@ module WithRecursiveTree
       foreign_key = self.class.with_recursive_tree_foreign_key
       foreign_key_value = send(foreign_key)
 
-      if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+      if self.class.with_recursive_tree_foreign_key_type.present?
         foreign_key_type = self.class.with_recursive_tree_foreign_key_type
         foreign_key_type_value = send(foreign_key_type)
 
@@ -138,7 +137,7 @@ module WithRecursiveTree
       foreign_key = self.class.with_recursive_tree_foreign_key
       primary_key = self.class.with_recursive_tree_primary_key
 
-      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+      joins_sql = if self.class.with_recursive_tree_foreign_key_type.present?
         <<~SQL
           JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key}
             AND tree.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
@@ -178,7 +177,7 @@ module WithRecursiveTree
         "tree.path || #{table_name}.#{primary_key} || '/'"
       end
 
-      joins_sql = if self.class.respond_to?(:with_recursive_tree_foreign_key_type)
+      joins_sql = if self.class.with_recursive_tree_foreign_key_type.present?
         <<~SQL
           JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key}
             AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
