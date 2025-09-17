@@ -125,7 +125,7 @@ module WithRecursiveTree
     end
 
     def self_and_ancestors
-      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? { "tree.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name } : nil
+      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? {"tree.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name} : nil
 
       self.class.with_recursive(
         tree: [
@@ -152,7 +152,7 @@ module WithRecursiveTree
         "tree.path || #{self.class.table_name}.#{self.class.with_recursive_tree_primary_key} || '/'"
       end
 
-      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? { "#{self.class.table_name}.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name } : nil
+      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? {"#{self.class.table_name}.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name} : nil
 
       recursive_query = self.class.joins("JOIN tree ON #{self.class.table_name}.#{self.class.with_recursive_tree_foreign_key} = tree.#{self.class.with_recursive_tree_primary_key}").select("#{self.class.table_name}.*, #{recursive_path} AS path, depth + 1 AS depth").where scope_condition
 
