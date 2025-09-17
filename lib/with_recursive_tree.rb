@@ -27,10 +27,10 @@ module WithRecursiveTree
         before_save do
           if send(:"#{foreign_key}_changed?")
             if send(foreign_key).present?
-              # Only set foreign_key_type to class name if it's not already set to something else
+              # When setting a parent, the foreign_key_type is automatically set to the model's class name if it's blank
               send(:"#{foreign_key_type}=", self.class.name) if send(foreign_key_type).blank?
             elsif send(foreign_key).nil?
-              # When clearing parent, set type to nil unless explicitly keeping it as model name
+              # When clearing parent, the foreign_key_type is to nil unless it's explicitly set to the model's class name
               send(:"#{foreign_key_type}=", nil) unless send(foreign_key_type) == self.class.name
             end
           end
@@ -56,9 +56,9 @@ module WithRecursiveTree
       scope :roots, -> {
         if with_recursive_tree_foreign_key_type.present?
           # Root conditions with foreign_key_type:
-          # 1. nil foreign_key AND nil foreign_key_type
-          # 2. nil foreign_key AND foreign_key_type matches model name
-          # 3. not nil foreign_key AND foreign_key_type different from model name
+          # 1. foreign_key is nil AND foreign_key_type is nil
+          # 2. foreign_key is nil AND foreign_key_type matches the model's class name
+          # 3. foreign_key is not nil AND foreign_key_type is different from model's class name
           where(with_recursive_tree_foreign_key => nil)
             .where(with_recursive_tree_foreign_key_type => [nil, name])
             .or(
@@ -114,9 +114,9 @@ module WithRecursiveTree
         foreign_key_type_value = send(self.class.with_recursive_tree_foreign_key_type)
 
         # Root conditions with foreign_key_type:
-        # 1. nil foreign_key AND nil foreign_key_type
-        # 2. nil foreign_key AND foreign_key_type matches model name
-        # 3. not nil foreign_key AND foreign_key_type different from model name
+        # 1. foreign_key is nil AND foreign_key_type is nil
+        # 2. foreign_key is nil AND foreign_key_type matches the model's class name
+        # 3. foreign_key is not nil AND foreign_key_type is different from model's class name
         (foreign_key_value.nil? && [nil, self.class.name].include?(foreign_key_type_value)) ||
           (foreign_key_value.present? && foreign_key_type_value != self.class.name)
       else
