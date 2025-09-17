@@ -95,38 +95,30 @@ module WithRecursiveTree
 
       if self.class.with_recursive_tree_foreign_key_type.present?
         # For foreign_key_type, find the first ancestor that satisfies root conditions
-        self_and_ancestors.find do |node|
-          foreign_key_value = node.send(self.class.with_recursive_tree_foreign_key)
-          foreign_key_type_value = node.send(self.class.with_recursive_tree_foreign_key_type)
-
-          if foreign_key_value.nil?
-            foreign_key_type_value.nil? || foreign_key_type_value == self.class.name
-          else
-            foreign_key_type_value != self.class.name
-          end
-        end
+        self_and_ancestors.where(
+          self.class.with_recursive_tree_foreign_key => nil,
+          self.class.with_recursive_tree_foreign_key_type => [nil, self.class.name]
+        ).or(
+          self_and_ancestors.where.not(self.class.with_recursive_tree_foreign_key => nil)
+            .where.not(self.class.with_recursive_tree_foreign_key_type => self.class.name)
+        ).first
       else
         self_and_ancestors.find_by self.class.with_recursive_tree_foreign_key => nil
       end
     end
 
     def root?
-      foreign_key = self.class.with_recursive_tree_foreign_key
-      foreign_key_value = send(foreign_key)
+      foreign_key_value = send(self.class.with_recursive_tree_foreign_key)
 
       if self.class.with_recursive_tree_foreign_key_type.present?
-        foreign_key_type = self.class.with_recursive_tree_foreign_key_type
-        foreign_key_type_value = send(foreign_key_type)
+        foreign_key_type_value = send(self.class.with_recursive_tree_foreign_key_type)
 
         # Root conditions with foreign_key_type:
         # 1. nil foreign_key AND nil foreign_key_type
         # 2. nil foreign_key AND foreign_key_type matches model name
         # 3. not nil foreign_key AND foreign_key_type different from model name
-        if foreign_key_value.nil?
-          foreign_key_type_value.nil? || foreign_key_type_value == self.class.name
-        else
-          foreign_key_type_value != self.class.name
-        end
+        (foreign_key_value.nil? && [nil, self.class.name].include?(foreign_key_type_value)) ||
+          (foreign_key_value.present? && foreign_key_type_value != self.class.name)
       else
         foreign_key_value.nil?
       end
