@@ -25,13 +25,13 @@ module WithRecursiveTree
 
       if foreign_key_type.present?
         before_save do
-          if send("#{foreign_key}_changed?")
+          if send(:"#{foreign_key}_changed?")
             if send(foreign_key).present?
               # Only set foreign_key_type to class name if it's not already set to something else
-              send("#{foreign_key_type}=", self.class.name) if send(foreign_key_type).blank?
+              send(:"#{foreign_key_type}=", self.class.name) if send(foreign_key_type).blank?
             elsif send(foreign_key).nil?
               # When clearing parent, set type to nil unless explicitly keeping it as model name
-              send("#{foreign_key_type}=", nil) unless send(foreign_key_type) == self.class.name
+              send(:"#{foreign_key_type}=", nil) unless send(foreign_key_type) == self.class.name
             end
           end
         end
@@ -133,62 +133,36 @@ module WithRecursiveTree
     end
 
     def self_and_ancestors
-      table_name = self.class.table_name
-      foreign_key = self.class.with_recursive_tree_foreign_key
-      primary_key = self.class.with_recursive_tree_primary_key
-
-      joins_sql = if self.class.with_recursive_tree_foreign_key_type.present?
-        <<~SQL
-          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key}
-            AND tree.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
-        SQL
-      else
-        <<~SQL
-          JOIN tree ON #{table_name}.#{primary_key} = tree.#{foreign_key}
-        SQL
-      end
+      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? { "tree.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name } : nil
 
       self.class.with_recursive(
         tree: [
-          self.class.where(primary_key => send(primary_key)),
-          self.class.joins(joins_sql)
+          self.class.where(self.class.with_recursive_tree_primary_key => send(self.class.with_recursive_tree_primary_key)),
+          self.class.joins("JOIN tree ON #{self.class.table_name}.#{self.class.with_recursive_tree_primary_key} = tree.#{self.class.with_recursive_tree_foreign_key}").where(scope_condition)
         ]
-      ).select("*").from("tree AS #{table_name}")
+      ).select("*").from("tree AS #{self.class.table_name}")
     end
 
     def self_and_descendants
-      table_name = self.class.table_name
-      foreign_key = self.class.with_recursive_tree_foreign_key
-      primary_key = self.class.with_recursive_tree_primary_key
-
       anchor_path = if defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
         "ARRAY[#{self.class.with_recursive_tree_order_column}]::text[]"
       elsif defined?(ActiveRecord::ConnectionAdapters::MySQL)
-        "CAST(CONCAT('/', #{primary_key}, '/') AS CHAR(512))"
+        "CAST(CONCAT('/', #{self.class.with_recursive_tree_primary_key}, '/') AS CHAR(512))"
       elsif defined?(ActiveRecord::ConnectionAdapters::SQLite3Adapter)
-        "'/' || #{primary_key} || '/'"
+        "'/' || #{self.class.with_recursive_tree_primary_key} || '/'"
       end
 
       recursive_path = if defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
-        "tree.path || #{table_name}.#{self.class.with_recursive_tree_order_column}::text"
+        "tree.path || #{self.class.table_name}.#{self.class.with_recursive_tree_order_column}::text"
       elsif defined?(ActiveRecord::ConnectionAdapters::MySQL)
-        "CONCAT(tree.path, #{table_name}.#{primary_key}, '/')"
+        "CONCAT(tree.path, #{self.class.table_name}.#{self.class.with_recursive_tree_primary_key}, '/')"
       elsif defined?(ActiveRecord::ConnectionAdapters::SQLite3)
-        "tree.path || #{table_name}.#{primary_key} || '/'"
+        "tree.path || #{self.class.table_name}.#{self.class.with_recursive_tree_primary_key} || '/'"
       end
 
-      joins_sql = if self.class.with_recursive_tree_foreign_key_type.present?
-        <<~SQL
-          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key}
-            AND #{table_name}.#{self.class.with_recursive_tree_foreign_key_type} = '#{self.class.name}'
-        SQL
-      else
-        <<~SQL
-          JOIN tree ON #{table_name}.#{foreign_key} = tree.#{primary_key}
-        SQL
-      end
+      scope_condition = self.class.with_recursive_tree_foreign_key_type.present? ? { "#{self.class.table_name}.#{self.class.with_recursive_tree_foreign_key_type}" => self.class.name } : nil
 
-      recursive_query = self.class.joins(joins_sql).select("#{table_name}.*, #{recursive_path} AS path, depth + 1 AS depth")
+      recursive_query = self.class.joins("JOIN tree ON #{self.class.table_name}.#{self.class.with_recursive_tree_foreign_key} = tree.#{self.class.with_recursive_tree_primary_key}").select("#{self.class.table_name}.*, #{recursive_path} AS path, depth + 1 AS depth").where scope_condition
 
       unless defined?(ActiveRecord::ConnectionAdapters::MySQL)
         recursive_query = recursive_query.order(self.class.with_recursive_tree_order)
@@ -196,10 +170,10 @@ module WithRecursiveTree
 
       self.class.with_recursive(
         tree: [
-          self.class.where(primary_key => send(primary_key)).select("*, #{anchor_path} AS path, 0 AS depth"),
+          self.class.where(self.class.with_recursive_tree_primary_key => send(self.class.with_recursive_tree_primary_key)).select("*, #{anchor_path} AS path, 0 AS depth"),
           Arel.sql(recursive_query.to_sql)
         ]
-      ).select("*").from("tree AS #{table_name}")
+      ).select("*").from("tree AS #{self.class.table_name}")
     end
 
     def self_and_siblings
