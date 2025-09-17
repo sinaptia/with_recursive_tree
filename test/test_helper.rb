@@ -12,7 +12,6 @@ require "active_support"
 require "debug"
 require "erb"
 require "with_recursive_tree"
-require "rails/plugin/test"
 
 class ActiveSupport::TestCase
   include ActiveRecord::Assertions::QueryAssertions
@@ -103,7 +102,7 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
-  create_table :custom_keys_nodes do |t|
+  create_table :custom_key_nodes do |t|
     t.column :name, :string
     t.column :pool_id, :integer
     t.column :pool_type, :string
@@ -128,10 +127,10 @@ class NonPolymorphicNode < ActiveRecord::Base
   with_recursive_tree foreign_key: :pool_id, foreign_key_type: :pool_type, order: :name
 end
 
-class CustomKeysNode < ActiveRecord::Base
+class CustomKeyNode < ActiveRecord::Base
   with_recursive_tree foreign_key: :pool_id, foreign_key_type: :pool_type, order: :name
 
-  belongs_to :pool, class_name: "CustomKeysNode", foreign_key: :pool_id, optional: true
+  belongs_to :pool, class_name: "CustomKeyNode", foreign_key: :pool_id, optional: true
 end
 
 class Person < ActiveRecord::Base

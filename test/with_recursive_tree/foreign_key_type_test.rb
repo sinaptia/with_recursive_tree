@@ -18,14 +18,14 @@ class ForeignKeyTypeTest < ActiveSupport::TestCase
     @cross_node = NonPolymorphicNode.create name: "Cross Node", pool_id: @poly_root.id, pool_type: "PolymorphicNode"
 
     # Custom keys model setup
-    @custom_root = CustomKeysNode.create name: "Custom Root"
-    @custom_child1 = CustomKeysNode.create name: "Custom Child 1", pool: @custom_root
-    @custom_child2 = CustomKeysNode.create name: "Custom Child 2", pool: @custom_root
-    @custom_grandchild = CustomKeysNode.create name: "Custom Grandchild", pool: @custom_child1
+    @custom_root = CustomKeyNode.create name: "Custom Root"
+    @custom_child1 = CustomKeyNode.create name: "Custom Child 1", pool: @custom_root
+    @custom_child2 = CustomKeyNode.create name: "Custom Child 2", pool: @custom_root
+    @custom_grandchild = CustomKeyNode.create name: "Custom Grandchild", pool: @custom_child1
   end
 
   teardown do
-    [PolymorphicNode, NonPolymorphicNode, CustomKeysNode].each(&:delete_all)
+    [PolymorphicNode, NonPolymorphicNode, CustomKeyNode].each(&:delete_all)
   end
 
   # Test polymorphic nodes
@@ -100,7 +100,7 @@ class ForeignKeyTypeTest < ActiveSupport::TestCase
   end
 
   test "custom keys node roots scope" do
-    roots = CustomKeysNode.roots
+    roots = CustomKeyNode.roots
     assert_includes roots, @custom_root
     assert_not_includes roots, @custom_child1
     assert_not_includes roots, @custom_grandchild
