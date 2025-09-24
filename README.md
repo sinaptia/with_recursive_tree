@@ -39,6 +39,27 @@ class Category < ApplicationRecord
 end
 ```
 
+For polymorphic associations where a node can have different types of parents, you can use the `foreign_key_type` option to specify a column that stores the parent model's class name:
+
+```ruby
+class Comment < ApplicationRecord
+  with_recursive_tree foreign_key: :parent_id, foreign_key_type: :parent_type
+end
+```
+
+This allows nodes to belong to different parent model types while maintaining proper tree structure constraints.
+
+When using `foreign_key_type`, a node is considered a root if it meets any of these conditions:
+
+1. Both `foreign_key` and `foreign_key_type` are `nil` (traditional root)
+2. `foreign_key` is `nil` and `foreign_key_type` matches the model's class name
+3. `foreign_key` is not `nil` but `foreign_key_type` is different from the model's class name (belongs to a different model type)
+
+The `foreign_key_type` value is automatically managed through a `before_save` callback:
+
+* When setting a parent (`foreign_key`), the `foreign_key_type` is automatically set to the model's class name if it's blank
+* When clearing a parent (`foreign_key` becomes `nil`), the `foreign_key_type` is set to `nil` unless it's explicitly set to the model's class name
+
 Lastly, you can specify how to sort each node's `children` by passing the `order` option to `with_recursive_tree`. If no `order` option is set, it will default to `id`. This option is useful especially when you need to traverse the tree in a specific order. For example:
 
 ```ruby
@@ -49,24 +70,24 @@ end
 
 ### Class methods
 
-| Method | Description |
-|--------|-------------|
+| Method    | Description                               |
+| --------- | ----------------------------------------- |
 | `::roots` | Returns all roots (nodes without parent). |
 
 ### Instance methods
 
-| Method | Description |
-|--------|-------------|
-| `#ancestors` | Returns all ancestors of the node. |
-| `#descendants` | Returns all descendants of the node (subtree). |
-| `#leaf?` | Returns whether the node is a leaf (has no children). |
-| `#depth` | Returns the depth of the current node. |
-| `#root` | Returns the root node of the current node's tree. |
-| `#root?` | Returns whether the node is a root (has no parent). |
-| `#self_and_ancestors` | Returns the node and all its ancestors. |
-| `#self_and_descendants` | Returns the node and all its descendants (subtree). |
-| `#self_and_siblings` | Returns the current node and all its siblings. |
-| `#siblings` | Returns the current node's siblings. |
+| Method                  | Description                                           |
+| ----------------------- | ----------------------------------------------------- |
+| `#ancestors`            | Returns all ancestors of the node.                    |
+| `#descendants`          | Returns all descendants of the node (subtree).        |
+| `#leaf?`                | Returns whether the node is a leaf (has no children). |
+| `#depth`                | Returns the depth of the current node.                |
+| `#root`                 | Returns the root node of the current node's tree.     |
+| `#root?`                | Returns whether the node is a root (has no parent).   |
+| `#self_and_ancestors`   | Returns the node and all its ancestors.               |
+| `#self_and_descendants` | Returns the node and all its descendants (subtree).   |
+| `#self_and_siblings`    | Returns the current node and all its siblings.        |
+| `#siblings`             | Returns the current node's siblings.                  |
 
 ### Tree traversing
 
